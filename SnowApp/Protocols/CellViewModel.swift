@@ -8,6 +8,11 @@
 import Foundation
 
 protocol CellViewModel {
+    func didTapShowMap()
     var title: String { get }
     var detailText: String { get }
+}
+
+extension CellViewModel {
+    func didTapShowMap() {}
 }

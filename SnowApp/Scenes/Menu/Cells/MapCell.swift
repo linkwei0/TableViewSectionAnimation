@@ -15,9 +15,16 @@ private extension Constants {
 class MapCell: UITableViewCell {
     // MARK: - Properties
     
-    private var mapView: MapView?
+    var mapView: MapView?
+    private lazy var expandMapButton = UIButton()
+    private var viewModel: CellViewModel?
     
     // MARK: - Init
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        mapView = nil
+    }
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -29,21 +36,54 @@ class MapCell: UITableViewCell {
         setup()
     }
     
+    // MARK: - Configure
+    
+    func configure(with viewModel: CellViewModel) {
+        self.viewModel = viewModel
+    }
+    
     // MARK: - Setup
     
     private func setup() {
         setupMapView()
+        setupOpenMapButton()
     }
     
     private func setupMapView() {
         let myResourceOptions = ResourceOptions(accessToken: Constants.accessToken)
         let myMapInitOptions = MapInitOptions(resourceOptions: myResourceOptions)
-        mapView = MapView(frame: contentView.frame, mapInitOptions: myMapInitOptions)
+        mapView = MapView(frame: .zero, mapInitOptions: myMapInitOptions)
         
         guard let mapView = mapView else { return }
-        mapView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         mapView.gestures.delegate = self
+        mapView.ornaments.logoView.isHidden = true
+        mapView.ornaments.attributionButton.isHidden = true
         contentView.addSubview(mapView)
+        mapView.translatesAutoresizingMaskIntoConstraints = false
+        mapView.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
+        mapView.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
+        mapView.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
+        mapView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
+    }
+    
+    private func setupOpenMapButton() {
+        guard let mapView = mapView else { return }
+        let buttonSize: CGFloat = 16
+        mapView.addSubview(expandMapButton)
+        expandMapButton.addTarget(self, action: #selector(didTapExpandMapButton), for: .touchUpInside)
+        expandMapButton.setImage(UIImage(named: "expand"), for: .normal)
+        expandMapButton.tintColor = .black
+        expandMapButton.translatesAutoresizingMaskIntoConstraints = false
+        expandMapButton.rightAnchor.constraint(equalTo: mapView.rightAnchor, constant: -12).isActive = true
+        expandMapButton.bottomAnchor.constraint(equalTo: mapView.bottomAnchor, constant: -12).isActive = true
+        expandMapButton.heightAnchor.constraint(equalToConstant: buttonSize).isActive = true
+        expandMapButton.widthAnchor.constraint(equalToConstant: buttonSize).isActive = true
+    }
+    
+    // MARK: - IBActions
+    
+    @objc private func didTapExpandMapButton() {
+        viewModel?.didTapShowMap()
     }
 }
 
